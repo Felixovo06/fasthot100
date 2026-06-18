@@ -214,6 +214,18 @@ main { max-width: 1040px; margin: 0 auto; padding: 40px 28px 90px; }
 
 .foot { margin-top: 30px; text-align: center; color: var(--faint); font-size: 13px; }
 
+/* 站点访问统计：常驻底栏，不随视图切换重建 */
+.site-stat {
+  text-align: center;
+  color: var(--faint);
+  font-size: 12px;
+  letter-spacing: .04em;
+  padding: 22px 16px 26px;
+  border-top: 1px solid var(--line-soft);
+  margin-top: 8px;
+}
+.site-stat b { color: var(--dim); font-weight: 700; }
+
 /* ============ 刷题视图 ============ */
 
 .drill-bar {
