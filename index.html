@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <div class="noise" aria-hidden="true"></div>
@@ -15,7 +15,9 @@
 <header class="hud">
   <div class="brand">FAST<i>/</i>HOT·100<em>考前冲刺速记</em></div>
   <div class="hud-right">
-    <div class="hud-cell"><label>已用</label><b id="hud-used" class="mono">0:00:00</b></div>
+    <div class="hud-cell vstat"><label>访问</label><b id="vercount_value_site_pv" class="mono">…</b></div>
+    <div class="hud-cell vstat"><label>访客</label><b id="vercount_value_site_uv" class="mono">…</b></div>
+    <div class="hud-cell divide"><label>已用</label><b id="hud-used" class="mono">0:00:00</b></div>
     <div class="hud-cell"><label>预算</label><b class="mono dim">5:00:00</b></div>
     <div class="hud-cell"><label>节奏</label><b id="hud-pace" class="mono">—</b></div>
   </div>
@@ -27,12 +29,7 @@
 
 <main id="view"></main>
 
-<footer class="site-stat" aria-label="站点访问统计">
-  本站累计访问 <b id="vercount_value_site_pv" class="mono">…</b> 次 ·
-  <b id="vercount_value_site_uv" class="mono">…</b> 人来过
-</footer>
-
-<!-- 访问统计：vercount（不蒜子的稳定替代，纯静态、免费、无需账号） -->
+<!-- 访问统计：vercount（不蒜子的稳定替代，纯静态、免费、无需账号）→ 数字填入顶栏「访问 / 访客」 -->
 <script defer src="https://cn.vercount.one/js"></script>
 <script src="data/data1.js?v=6"></script>
 <script src="data/data2.js?v=6"></script>
