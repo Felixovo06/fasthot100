@@ -1,0 +1,9 @@
+# 本地运行产物
+.server.pid
+
+# macOS
+.DS_Store
+
+# 编辑器
+.vscode/
+.idea/
