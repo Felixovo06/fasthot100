@@ -195,7 +195,7 @@ main { max-width: 1040px; margin: 0 auto; padding: 40px 28px 90px; }
 /* 分类列表 */
 .cats { display: flex; flex-direction: column; gap: 8px; }
 .catrow {
-  display: grid; grid-template-columns: 150px 1fr 64px; align-items: center; gap: 18px;
+  display: grid; grid-template-columns: 150px 1fr auto 64px; align-items: center; gap: 18px;
   padding: 13px 18px; border: 1px solid var(--line-soft); border-radius: 12px;
   background: var(--panel); cursor: pointer; text-align: left;
   font-family: var(--sans); color: var(--cream);
@@ -380,6 +380,94 @@ main { max-width: 1040px; margin: 0 auto; padding: 40px 28px 90px; }
 .done .btn { margin: 0 7px; }
 .all-clear { font-size: 19px; color: var(--ok); margin-bottom: 26px; }
 
+.catgo { font-size: 12px; font-weight: 700; color: var(--acc); letter-spacing: .05em; white-space: nowrap; }
+
+/* ============ 刷题导航 / 工具按钮 ============ */
+.navset { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.navset .pos { margin-left: 0; font-size: 20px; }
+.iconbtn {
+  font-family: var(--mono); font-size: 18px; line-height: 1;
+  width: 34px; height: 34px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--panel); color: var(--cream);
+  transition: border-color .15s, background .15s, transform .12s;
+}
+.iconbtn:hover:not(:disabled) { border-color: var(--acc); background: var(--panel-2); transform: translateY(-1px); }
+.iconbtn:disabled { opacity: .3; cursor: not-allowed; }
+
+.back-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.back-tools .t-num { margin-left: 4px; }
+.chip.edited { color: var(--ok); border-color: rgba(94, 194, 106, .4); background: rgba(94, 194, 106, .1); }
+
+/* ============ 浮层：选题目录 / 编辑答案 ============ */
+.overlay {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 6vh 18px 18px;
+  background: rgba(6, 5, 3, .74); backdrop-filter: blur(5px);
+  animation: cardIn .18s both;
+}
+.sheet {
+  width: 100%; max-width: 680px; max-height: 86vh; display: flex; flex-direction: column;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, .6); overflow: hidden;
+  animation: fadeUp .25s cubic-bezier(.2, .7, .3, 1) both;
+}
+.sheet > header {
+  display: flex; align-items: center; gap: 12px; padding: 15px 18px;
+  border-bottom: 1px solid var(--line-soft); flex: none;
+}
+.sheet > header b { font-size: 14.5px; letter-spacing: .03em; }
+.sheet .x {
+  margin-left: auto; flex: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line); background: transparent; color: var(--dim); font-size: 15px;
+}
+.sheet .x:hover { color: var(--cream); border-color: var(--faint); }
+
+/* 选题目录 */
+#pick-search {
+  flex: 1; font-family: var(--sans); font-size: 14.5px; color: var(--cream);
+  background: rgba(0, 0, 0, .3); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 14px; outline: none;
+}
+#pick-search:focus { border-color: var(--acc); }
+.picklist { overflow: auto; padding: 6px 10px 12px; }
+.pickcat {
+  font-size: 11px; letter-spacing: .25em; color: var(--faint);
+  padding: 13px 8px 5px; position: sticky; top: 0; z-index: 1;
+  background: linear-gradient(var(--panel) 78%, transparent);
+}
+.pickitem {
+  display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+  padding: 9px 12px; border-radius: 9px; cursor: pointer;
+  border: 1px solid transparent; background: transparent; color: var(--cream);
+  font-family: var(--sans); transition: background .12s, border-color .12s;
+}
+.pickitem:hover { background: var(--panel-2); border-color: var(--line); }
+.pickitem.on { border-color: var(--acc); background: var(--acc-soft); }
+.pickitem .dot { width: 10px; height: 10px; border-radius: 50%; background: #2f2818; flex: none; }
+.pickitem .dot.ok { background: var(--ok); }
+.pickitem .dot.fuzzy { background: var(--fuzzy); }
+.pickitem .dot.fail { background: var(--fail); }
+.pickitem .plc { color: var(--acc); font-size: 12.5px; min-width: 54px; flex: none; }
+.pickitem .ptitle { flex: 1; font-size: 14px; }
+.pickitem .ptitle .ed { color: var(--ok); font-style: normal; }
+.pickitem .pdiff { font-size: 11.5px; color: var(--faint); flex: none; }
+.pickempty { padding: 34px; text-align: center; color: var(--faint); }
+.pickfoot { padding: 11px 18px; border-top: 1px solid var(--line-soft); color: var(--faint); font-size: 12px; flex: none; }
+
+/* 编辑答案 */
+.sheet.edit .editbody { overflow: auto; padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 5px; }
+.editbody label { font-size: 11.5px; letter-spacing: .14em; color: var(--dim); margin-top: 9px; }
+.editbody input, .editbody textarea {
+  font-family: var(--sans); font-size: 14px; color: var(--cream);
+  background: rgba(0, 0, 0, .3); border: 1px solid var(--line); border-radius: 9px;
+  padding: 9px 12px; outline: none; resize: vertical; line-height: 1.6;
+}
+.editbody input:focus, .editbody textarea:focus { border-color: var(--acc); }
+.editbody .codearea { font-family: var(--mono); font-size: 13px; line-height: 1.6; tab-size: 4; min-height: 180px; }
+.sheet.edit footer { display: flex; align-items: center; gap: 10px; padding: 13px 18px; border-top: 1px solid var(--line-soft); flex: none; }
+.sheet.edit footer .grow { flex: 1; }
+
 /* ============ 响应式 ============ */
 @media (max-width: 760px) {
   main { padding: 26px 16px 70px; }
@@ -391,11 +479,18 @@ main { max-width: 1040px; margin: 0 auto; padding: 40px 28px 90px; }
   .hud-cell.vstat b { font-size: 13px; }
   .hud-cell.divide { padding-left: 13px; }
   .method { grid-template-columns: 1fr; }
-  .catrow { grid-template-columns: 100px 1fr 50px; gap: 10px; padding: 11px 13px; }
+  .catrow { grid-template-columns: 92px 1fr auto 44px; gap: 10px; padding: 11px 13px; }
   .catname { font-size: 13px; letter-spacing: .05em; }
   .front { padding: 60px 22px; min-height: 380px; }
   .front .ring { width: 60px; height: 60px; top: 16px; right: 16px; }
   .back { padding: 18px 16px; }
   .grade { grid-template-columns: 1fr; }
   .hero-stats { margin-left: 0; }
+  .drill-bar { flex-wrap: wrap; }
+  .navset { width: 100%; justify-content: flex-end; }
+  .back-head { gap: 8px; }
+  .back-tools { width: 100%; }
+  .overlay { padding: 3vh 10px 10px; }
+  .sheet { max-height: 92vh; }
+  .pickitem .pdiff { display: none; }
 }
