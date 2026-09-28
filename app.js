@@ -5,11 +5,13 @@ const BUDGET_TOTAL = 5 * 3600; // 5 小时
 const CATS = ['哈希', '双指针', '滑动窗口', '子串', '普通数组', '矩阵', '链表', '二叉树', '图论', '回溯', '二分查找', '栈', '堆', '贪心', '动态规划', '多维动态规划', '技巧'];
 const P = window.HOT100 || [];
 const FULL = window.HOT100_FULL || {}; // lc → 力扣完整题面 HTML
+const GO = window.HOT100_GO || {}; // lc → Go 题解
+const GO_COMP = window.HOT100_GO_COMP || {}; // Go 实现与 Java 复杂度不同时单独标注
 const LS_KEY = 'fasthot100.v1';
 const KEY_GRADE = { '1': 'ok', '2': 'fuzzy', '3': 'fail' };
 
 /* ============ 状态 ============ */
-let S = loadState();          // { grades:{lc:'ok'|'fuzzy'|'fail'}, time:秒, sessions:{title:{queue,pos}}, edits:{lc:{...}} }
+let S = loadState();          // { grades, time, sessions, edits, language }
 let view = 'dash';
 let drill = null;             // { queue: [idx], pos, flipped, spent, title }
 let tick = null;
@@ -18,9 +20,9 @@ let modalOpen = false;        // 选题/编辑浮层打开时：暂停计时、�
 function loadState() {
   try {
     const s = JSON.parse(localStorage.getItem(LS_KEY));
-    if (s && typeof s === 'object') return Object.assign({ grades: {}, time: 0, sessions: {}, edits: {} }, s);
+    if (s && typeof s === 'object') return Object.assign({ grades: {}, time: 0, sessions: {}, edits: {}, language: 'go' }, s);
   } catch (e) { /* 损坏则重置 */ }
-  return { grades: {}, time: 0, sessions: {}, edits: {} };
+  return { grades: {}, time: 0, sessions: {}, edits: {}, language: 'go' };
 }
 const save = () => localStorage.setItem(LS_KEY, JSON.stringify(S));
 
@@ -54,8 +56,8 @@ function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-/* Java 语法高亮：注释 > 字符串 > 关键字 > 类型 > 数字 */
-const HL_RE = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(public|private|protected|static|final|abstract|class|interface|enum|void|int|long|double|float|boolean|char|byte|short|new|return|if|else|for|while|do|break|continue|switch|case|default|null|true|false|this|super|extends|implements|import|instanceof|throw|throws|try|catch|finally|var)\b|\b([A-Z][A-Za-z0-9_]*)\b|\b(\d[\w]*)\b/g;
+/* 注释 > 字符串 > 关键字 > 类型 > 数字 */
+const HL_RE = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\\n]|\\.)*`)|\b(public|private|protected|static|final|abstract|class|interface|enum|void|int|int8|int16|int32|int64|uint|uint8|uint16|uint32|uint64|uintptr|long|double|float|float32|float64|boolean|bool|string|char|rune|byte|short|new|return|if|else|for|while|do|break|continue|switch|case|default|null|nil|true|false|this|super|extends|implements|import|instanceof|throw|throws|try|catch|finally|var|func|map|range|defer|go|chan|select|package|type|struct|make|append|len|cap|copy|delete|fallthrough|const)\b|\b([A-Z][A-Za-z0-9_]*)\b|\b(\d[\w]*)\b/g;
 function hl(src) {
   return esc(src).replace(HL_RE, (m, c, st, k, ty, n) =>
     c  ? '<span class="tk-c">' + c + '</span>' :
@@ -189,7 +191,7 @@ function renderDash() {
   $('#btn-pick-dash').onclick = openPicker;
   $('#btn-reset').onclick = () => {
     if (confirm('清空全部自评、计时与续刷进度（保留你编辑过的答案），从零开始？')) {
-      S = { grades: {}, time: 0, sessions: {}, edits: S.edits || {} };
+      S = { grades: {}, time: 0, sessions: {}, edits: S.edits || {}, language: S.language || 'go' };
       save();
       renderDash();
     }
@@ -260,6 +262,12 @@ function renderDrill() {
   saveSession();
   const p = cur();
   const e = eff(p);
+  const language = S.language === 'java' ? 'java' : 'go';
+  const code = language === 'go'
+    ? (e.goCode !== undefined ? e.goCode : (GO[p.lc] || '// Go 解答缺失'))
+    : e.code;
+  const customComp = S.edits[p.lc] && S.edits[p.lc].comp;
+  const comp = language === 'go' && customComp === undefined ? (GO_COMP[p.lc] || e.comp) : e.comp;
   const edited = !!S.edits[p.lc];
   const diffCls = p.diff === '困难' ? 'hard' : p.diff === '中等' ? 'mid' : 'easy';
   const last = drill.queue.length - 1;
@@ -303,8 +311,14 @@ function renderDrill() {
         </div>
         <p class="idea">${esc(e.idea)}</p>
         <ul class="traps">${(e.traps || []).map(t => `<li>${esc(t)}</li>`).join('')}</ul>
-        <div class="comp mono">${esc(e.comp)}</div>
-        <pre class="code"><code>${hl(e.code)}</code></pre>
+        <div class="comp mono">${esc(comp)}</div>
+        <div class="code-tools">
+          <div class="lang-tabs" role="tablist" aria-label="题解语言">
+            <button class="btn ghost sm ${language === 'go' ? 'active' : ''}" data-lang="go" role="tab" aria-selected="${language === 'go'}">Go</button>
+            <button class="btn ghost sm ${language === 'java' ? 'active' : ''}" data-lang="java" role="tab" aria-selected="${language === 'java'}">Java</button>
+          </div>
+        </div>
+        <pre class="code"><code>${hl(code)}</code></pre>
         <div class="grade">
           <button class="g ok" data-g="ok"><kbd>1</kbd>秒会<small>移出队列</small></button>
           <button class="g fuzzy" data-g="fuzzy"><kbd>2</kbd>模糊<small>进重刷</small></button>
@@ -319,6 +333,11 @@ function renderDrill() {
   $('#btn-front').onclick = () => setFlip(false);
   $('#btn-edit').onclick = openEditor;
   $('#btn-pick').onclick = openPicker;
+  document.querySelectorAll('[data-lang]').forEach(button => button.onclick = () => {
+    S.language = button.dataset.lang;
+    save();
+    renderDrill();
+  });
   $('#btn-prev').onclick = () => navTo(-1);
   $('#btn-next').onclick = () => navTo(1);
   document.querySelectorAll('.grade .g').forEach(b => b.onclick = () => grade(b.dataset.g));
@@ -432,6 +451,10 @@ function openEditor() {
   modalOpen = true;
   const p = cur();
   const e = eff(p);
+  const language = S.language === 'java' ? 'java' : 'go';
+  const code = language === 'go'
+    ? (e.goCode !== undefined ? e.goCode : (GO[p.lc] || ''))
+    : e.code;
   const el = document.createElement('div');
   el.className = 'overlay';
   el.innerHTML = `
@@ -442,7 +465,7 @@ function openEditor() {
         <label>思路</label><textarea data-f="idea" rows="3"></textarea>
         <label>易错点（每行一条）</label><textarea data-f="traps" rows="3"></textarea>
         <label>复杂度</label><input data-f="comp" type="text">
-        <label>代码</label><textarea data-f="code" class="codearea" rows="14" spellcheck="false"></textarea>
+        <label>${language === 'go' ? 'Go' : 'Java'} 代码</label><textarea data-f="code" class="codearea" rows="14" spellcheck="false"></textarea>
       </div>
       <footer>
         <button class="btn ghost sm" data-act="reset">恢复默认</button>
@@ -457,7 +480,7 @@ function openEditor() {
   el.querySelector('[data-f="idea"]').value = e.idea || '';
   el.querySelector('[data-f="traps"]').value = (e.traps || []).join('\n');
   el.querySelector('[data-f="comp"]').value = e.comp || '';
-  el.querySelector('[data-f="code"]').value = e.code || '';
+  el.querySelector('[data-f="code"]').value = code || '';
 
   el.addEventListener('click', ev => {
     const act = ev.target.dataset.act;
@@ -477,7 +500,7 @@ function openEditor() {
         comp: g('comp').trim(),
         code: g('code'),
         traps: g('traps')
-      });
+      }, language);
       closeOverlay();
       renderDrill(); // 保持在背面，展示新答案
     }
@@ -485,13 +508,18 @@ function openEditor() {
 }
 
 // 只存与默认不同的字段：未改的字段仍跟随原始数据
-function applyEdit(orig, v) {
+function applyEdit(orig, v, language) {
   const edit = {};
+  const previous = S.edits[orig.lc] || {};
   // 基准同样 trim，避免「原样保存」被误判成已编辑
   if (v.pattern !== (orig.pattern || '').trim()) edit.pattern = v.pattern;
   if (v.idea !== (orig.idea || '').trim()) edit.idea = v.idea;
   if (v.comp !== (orig.comp || '').trim()) edit.comp = v.comp;
-  if (v.code !== orig.code) edit.code = v.code; // 代码保留原样，不 trim
+  const codeField = language === 'go' ? 'goCode' : 'code';
+  const defaultCode = language === 'go' ? GO[orig.lc] : orig.code;
+  const otherCodeField = language === 'go' ? 'code' : 'goCode';
+  if (previous[otherCodeField] !== undefined) edit[otherCodeField] = previous[otherCodeField];
+  if (v.code !== (defaultCode || '')) edit[codeField] = v.code; // 代码保留原样，不 trim
   const traps = v.traps.split('\n').map(s => s.trim()).filter(Boolean);
   const origTraps = (orig.traps || []).map(s => String(s).trim()).filter(Boolean);
   if (traps.length !== origTraps.length || traps.some((t, i) => t !== origTraps[i])) edit.traps = traps; // 逐条比较，避免边界塌缩

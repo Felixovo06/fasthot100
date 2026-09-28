@@ -340,6 +340,9 @@ main { max-width: 1040px; margin: 0 auto; padding: 40px 28px 90px; }
 .comp { font-size: 13px; color: var(--dim); margin-bottom: 14px; }
 .comp::before { content: '◷ '; color: var(--acc); }
 
+.code-tools { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.lang-tabs { display: flex; gap: 6px; }
+.lang-tabs .active { color: var(--acc); border-color: var(--acc); background: var(--acc-soft); }
 .code {
   background: var(--code-bg); border: 1px solid var(--line-soft); border-radius: 12px;
   padding: 18px 20px; overflow: auto; max-height: 44vh;
