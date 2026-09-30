@@ -42,9 +42,9 @@ window.HOT100.push(
   budget: 240,
   pattern: "小顶堆 / 分治",
   desc: "合并 k 个升序链表为一个升序链表并返回。",
-  idea: "小顶堆装各链表当前头节点，每次弹出最小接到结果尾，再把它的 next 入堆，直到堆空。时间 O(N log k)。备选：两两归并的分治，复杂度相同。",
-  traps: ["入堆前判 null，否则比较器空指针", "弹出节点后要把它的 next 入堆", "k 为链表数、N 为总节点数"],
-  comp: "时间 O(N log k)，空间 O(k)",
+  idea: "Java 版用小顶堆逐个取最小头结点；Go 版用分治两两归并，省去自定义堆接口。两种写法时间都是 O(N log k)，Go 额外使用 O(log k) 递归栈，Java 堆占 O(k) 空间。",
+  traps: ["小顶堆入堆前判 null，弹出后把 next 入堆", "Go 分治每次对半拆链表数组，合并两条有序链表", "k 为链表数、N 为总节点数"],
+  comp: "时间 O(N log k)，空间 Java O(k) / Go O(log k)",
   code: `class Solution {
     public ListNode mergeKLists(ListNode[] lists) {
         PriorityQueue<ListNode> pq = new PriorityQueue<>((x, y) -> x.val - y.val);

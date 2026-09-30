@@ -6,7 +6,6 @@ const CATS = ['哈希', '双指针', '滑动窗口', '子串', '普通数组', '
 const P = window.HOT100 || [];
 const FULL = window.HOT100_FULL || {}; // lc → 力扣完整题面 HTML
 const GO = window.HOT100_GO || {}; // lc → Go 题解
-const GO_COMP = window.HOT100_GO_COMP || {}; // Go 实现与 Java 复杂度不同时单独标注
 const LS_KEY = 'fasthot100.v1';
 const KEY_GRADE = { '1': 'ok', '2': 'fuzzy', '3': 'fail' };
 
@@ -266,8 +265,6 @@ function renderDrill() {
   const code = language === 'go'
     ? (e.goCode !== undefined ? e.goCode : (GO[p.lc] || '// Go 解答缺失'))
     : e.code;
-  const customComp = S.edits[p.lc] && S.edits[p.lc].comp;
-  const comp = language === 'go' && customComp === undefined ? (GO_COMP[p.lc] || e.comp) : e.comp;
   const edited = !!S.edits[p.lc];
   const diffCls = p.diff === '困难' ? 'hard' : p.diff === '中等' ? 'mid' : 'easy';
   const last = drill.queue.length - 1;
@@ -311,7 +308,7 @@ function renderDrill() {
         </div>
         <p class="idea">${esc(e.idea)}</p>
         <ul class="traps">${(e.traps || []).map(t => `<li>${esc(t)}</li>`).join('')}</ul>
-        <div class="comp mono">${esc(comp)}</div>
+        <div class="comp mono">${esc(e.comp)}</div>
         <div class="code-tools">
           <div class="lang-tabs" role="tablist" aria-label="题解语言">
             <button class="btn ghost sm ${language === 'go' ? 'active' : ''}" data-lang="go" role="tab" aria-selected="${language === 'go'}">Go</button>

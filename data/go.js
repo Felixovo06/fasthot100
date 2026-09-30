@@ -43,7 +43,9 @@ window.HOT100_GO = {
 	}
 	return best
 }`,
-  4: `func findMedianSortedArrays(nums1 []int, nums2 []int) float64 {
+  4: `import "math"
+
+func findMedianSortedArrays(nums1 []int, nums2 []int) float64 {
 	if len(nums1) > len(nums2) {
 		return findMedianSortedArrays(nums2, nums1)
 	}
@@ -52,8 +54,9 @@ window.HOT100_GO = {
 	for left <= right {
 		cut1 := left + (right-left)/2
 		cut2 := (m+n+1)/2 - cut1
-		left1, right1 := -int(^uint(0)>>1)-1, int(^uint(0)>>1)
-		left2, right2 := left1, right1
+		// 哨兵让切分点落在数组两端时也能直接比较。
+		left1, right1 := math.MinInt, math.MaxInt
+		left2, right2 := math.MinInt, math.MaxInt
 		if cut1 > 0 {
 			left1 = nums1[cut1-1]
 		}
@@ -262,36 +265,41 @@ func threeSum(nums []int) [][]int {
 	return ans
 }`,
   23: `func mergeKLists(lists []*ListNode) *ListNode {
-	mergeTwo := func(a, b *ListNode) *ListNode {
-		dummy, tail := &ListNode{}, (*ListNode)(nil)
-		tail = dummy
-		for a != nil && b != nil {
-			if a.Val < b.Val {
-				tail.Next, a = a, a.Next
-			} else {
-				tail.Next, b = b, b.Next
-			}
-			tail = tail.Next
-		}
-		if a != nil {
-			tail.Next = a
-		} else {
-			tail.Next = b
-		}
-		return dummy.Next
-	}
-	var mergeRange func(int, int) *ListNode
-	mergeRange = func(left, right int) *ListNode {
-		if left == right {
-			return lists[left]
-		}
-		mid := left + (right-left)/2
-		return mergeTwo(mergeRange(left, mid), mergeRange(mid+1, right))
-	}
 	if len(lists) == 0 {
 		return nil
 	}
-	return mergeRange(0, len(lists)-1)
+	return mergeKRange(lists, 0, len(lists)-1)
+}
+
+func mergeKRange(lists []*ListNode, left, right int) *ListNode {
+	if left == right {
+		return lists[left]
+	}
+	mid := left + (right-left)/2
+	a := mergeKRange(lists, left, mid)
+	b := mergeKRange(lists, mid+1, right)
+	return mergeKTwo(a, b)
+}
+
+func mergeKTwo(a, b *ListNode) *ListNode {
+	dummy := &ListNode{}
+	tail := dummy
+	for a != nil && b != nil {
+		if a.Val < b.Val {
+			tail.Next = a
+			a = a.Next
+		} else {
+			tail.Next = b
+			b = b.Next
+		}
+		tail = tail.Next
+	}
+	if a != nil {
+		tail.Next = a
+	} else {
+		tail.Next = b
+	}
+	return dummy.Next
 }`,
   24: `func swapPairs(head *ListNode) *ListNode {
 	dummy := &ListNode{Next: head}
@@ -307,23 +315,23 @@ func threeSum(nums []int) [][]int {
 	dummy := &ListNode{Next: head}
 	groupPrev := dummy
 	for {
-		kth := groupPrev
+		kth := groupPrev // 先探测本组第 k 个节点
 		for i := 0; i < k && kth != nil; i++ {
 			kth = kth.Next
 		}
-		if kth == nil {
+		if kth == nil { // 不足 k 个，保留原顺序
 			break
 		}
 		groupNext := kth.Next
-		prev, current := groupNext, groupPrev.Next
+		prev, current := groupNext, groupPrev.Next // 反转本组
 		for current != groupNext {
 			next := current.Next
 			current.Next = prev
 			prev, current = current, next
 		}
-		oldHead := groupPrev.Next
-		groupPrev.Next = kth
-		groupPrev = oldHead
+		oldHead := groupPrev.Next // 旧组头变成组尾
+		groupPrev.Next = kth      // 接上反转后的组头
+		groupPrev = oldHead       // 从新组尾继续
 	}
 	return dummy.Next
 }`,
@@ -1201,39 +1209,40 @@ func (c *LRUCache) Put(key, value int) {
 	}
 }`,
   148: `func sortList(head *ListNode) *ListNode {
-	var sortPart func(*ListNode) *ListNode
-	merge := func(a, b *ListNode) *ListNode {
-		dummy, tail := &ListNode{}, (*ListNode)(nil)
-		tail = dummy
-		for a != nil && b != nil {
-			if a.Val < b.Val {
-				tail.Next, a = a, a.Next
-			} else {
-				tail.Next, b = b, b.Next
-			}
-			tail = tail.Next
-		}
-		if a != nil {
+	if head == nil || head.Next == nil {
+		return head
+	}
+	slow, fast := head, head.Next // fast 先走一步，避免两节点时死循环
+	for fast != nil && fast.Next != nil {
+		slow = slow.Next
+		fast = fast.Next.Next
+	}
+	mid := slow.Next
+	slow.Next = nil // 断开两半
+	left := sortList(head)
+	right := sortList(mid)
+	return mergeSortedLists(left, right)
+}
+
+func mergeSortedLists(a, b *ListNode) *ListNode {
+	dummy := &ListNode{}
+	tail := dummy
+	for a != nil && b != nil {
+		if a.Val <= b.Val {
 			tail.Next = a
+			a = a.Next
 		} else {
 			tail.Next = b
+			b = b.Next
 		}
-		return dummy.Next
+		tail = tail.Next
 	}
-	sortPart = func(node *ListNode) *ListNode {
-		if node == nil || node.Next == nil {
-			return node
-		}
-		slow, fast := node, node.Next
-		for fast != nil && fast.Next != nil {
-			slow = slow.Next
-			fast = fast.Next.Next
-		}
-		right := slow.Next
-		slow.Next = nil
-		return merge(sortPart(node), sortPart(right))
+	if a != nil {
+		tail.Next = a
+	} else {
+		tail.Next = b
 	}
-	return sortPart(head)
+	return dummy.Next
 }`,
   152: `func maxProduct(nums []int) int {
 	maxHere, minHere, best := nums[0], nums[0], nums[0]
@@ -1467,36 +1476,44 @@ func (t *Trie) find(s string) *Trie {
 	}
 	return node
 }`,
-  215: `import "math/rand"
+  215: `import (
+	"math/rand"
+	"time"
+)
 
 func findKthLargest(nums []int, k int) int {
-	target := len(nums) - k
-	left, right := 0, len(nums)-1
-	for left <= right {
-		pivot := nums[left+rand.Intn(right-left+1)]
-		i, j := left, right
-		for i <= j {
-			for nums[i] < pivot {
-				i++
-			}
-			for nums[j] > pivot {
-				j--
-			}
-			if i <= j {
-				nums[i], nums[j] = nums[j], nums[i]
-				i++
-				j--
-			}
-		}
-		if target <= j {
-			right = j
-		} else if target >= i {
-			left = i
-		} else {
-			return nums[target]
+	random := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return quickSelect(nums, 0, len(nums)-1, len(nums)-k, random)
+}
+
+func quickSelect(nums []int, left, right, target int, random *rand.Rand) int {
+	pivotIndex := left + random.Intn(right-left+1) // 随机 pivot 防止固定输入退化
+	pivotIndex = partition(nums, left, right, pivotIndex)
+	if pivotIndex == target {
+		return nums[pivotIndex]
+	}
+	if pivotIndex < target {
+		return quickSelect(nums, pivotIndex+1, right, target, random)
+	}
+	return quickSelect(nums, left, pivotIndex-1, target, random)
+}
+
+func partition(nums []int, left, right, pivotIndex int) int {
+	pivot := nums[pivotIndex]
+	swap(nums, pivotIndex, right)
+	store := left
+	for i := left; i < right; i++ {
+		if nums[i] < pivot {
+			swap(nums, i, store)
+			store++
 		}
 	}
-	return -1
+	swap(nums, store, right)
+	return store
+}
+
+func swap(nums []int, i, j int) {
+	nums[i], nums[j] = nums[j], nums[i]
 }`,
   226: `func invertTree(root *TreeNode) *TreeNode {
 	if root == nil {
@@ -1523,36 +1540,35 @@ func findKthLargest(nums []int, k int) int {
 	return -1
 }`,
   234: `func isPalindrome(head *ListNode) bool {
+	if head == nil || head.Next == nil {
+		return true
+	}
 	slow, fast := head, head
-	for fast != nil && fast.Next != nil {
+	for fast.Next != nil && fast.Next.Next != nil {
 		slow = slow.Next
 		fast = fast.Next.Next
 	}
-	if fast != nil {
-		slow = slow.Next
-	}
-	reverse := func(node *ListNode) *ListNode {
-		var prev *ListNode
-		for node != nil {
-			next := node.Next
-			node.Next = prev
-			prev = node
-			node = next
-		}
-		return prev
-	}
-	second := reverse(slow)
+	second := reverseListHalf(slow.Next) // 奇数长度时跳过中点，再反转后半段
 	left, right := head, second
-	same := true
 	for right != nil {
 		if left.Val != right.Val {
-			same = false
-			break
+			return false
 		}
-		left, right = left.Next, right.Next
+		left = left.Next
+		right = right.Next
 	}
-	reverse(second) // 恢复链表
-	return same
+	return true
+}
+
+func reverseListHalf(head *ListNode) *ListNode {
+	var previous *ListNode
+	for head != nil {
+		next := head.Next
+		head.Next = previous
+		previous = head
+		head = next
+	}
+	return previous
 }`,
   236: `func lowestCommonAncestor(root, p, q *TreeNode) *TreeNode {
 	if root == nil || root == p || root == q {
@@ -1586,23 +1602,18 @@ func findKthLargest(nums []int, k int) int {
 	if k == 0 || len(nums) == 0 {
 		return []int{}
 	}
-	deque := make([]int, 0, 2*k)
-	head := 0
+	deque := []int{} // 存下标，队列对应的值保持递减
 	ans := make([]int, 0, len(nums)-k+1)
 	for i, x := range nums {
-		for head < len(deque) && deque[head] <= i-k {
-			head++
+		if len(deque) > 0 && deque[0] <= i-k {
+			deque = deque[1:] // 移除过期下标
 		}
-		for len(deque) > head && nums[deque[len(deque)-1]] <= x {
+		for len(deque) > 0 && nums[deque[len(deque)-1]] <= x {
 			deque = deque[:len(deque)-1]
 		}
 		deque = append(deque, i)
 		if i >= k-1 {
-			ans = append(ans, nums[deque[head]])
-		}
-		if head >= k {
-			deque = append(deque[:0], deque[head:]...)
-			head = 0
+			ans = append(ans, nums[deque[0]])
 		}
 	}
 	return ans
@@ -1663,21 +1674,22 @@ func findKthLargest(nums []int, k int) int {
 }`,
   295: `import "container/heap"
 
-type IntHeap struct {
+// max=true 时是大顶堆，否则是小顶堆。
+type medianHeap struct {
 	values []int
 	max    bool
 }
 
-func (h IntHeap) Len() int { return len(h.values) }
-func (h IntHeap) Less(i, j int) bool {
+func (h medianHeap) Len() int { return len(h.values) }
+func (h medianHeap) Less(i, j int) bool {
 	if h.max {
 		return h.values[i] > h.values[j]
 	}
 	return h.values[i] < h.values[j]
 }
-func (h IntHeap) Swap(i, j int)   { h.values[i], h.values[j] = h.values[j], h.values[i] }
-func (h *IntHeap) Push(value any) { h.values = append(h.values, value.(int)) }
-func (h *IntHeap) Pop() any {
+func (h medianHeap) Swap(i, j int)   { h.values[i], h.values[j] = h.values[j], h.values[i] }
+func (h *medianHeap) Push(value any) { h.values = append(h.values, value.(int)) }
+func (h *medianHeap) Pop() any {
 	last := len(h.values) - 1
 	value := h.values[last]
 	h.values = h.values[:last]
@@ -1685,25 +1697,20 @@ func (h *IntHeap) Pop() any {
 }
 
 type MedianFinder struct {
-	lower *IntHeap
-	upper *IntHeap
+	lower *medianHeap // 大顶堆，保存较小的一半
+	upper *medianHeap // 小顶堆，保存较大的一半
 }
 
 func Constructor() MedianFinder {
-	lower, upper := &IntHeap{max: true}, &IntHeap{}
+	lower, upper := &medianHeap{max: true}, &medianHeap{}
 	heap.Init(lower)
 	heap.Init(upper)
 	return MedianFinder{lower: lower, upper: upper}
 }
 func (m *MedianFinder) AddNum(num int) {
-	if m.lower.Len() == 0 || num <= m.lower.values[0] {
-		heap.Push(m.lower, num)
-	} else {
-		heap.Push(m.upper, num)
-	}
-	if m.lower.Len() > m.upper.Len()+1 {
-		heap.Push(m.upper, heap.Pop(m.lower))
-	} else if m.upper.Len() > m.lower.Len() {
+	heap.Push(m.lower, num)
+	heap.Push(m.upper, heap.Pop(m.lower)) // 把下半部分最大值移到上半部分
+	if m.upper.Len() > m.lower.Len() {
 		heap.Push(m.lower, heap.Pop(m.upper))
 	}
 }
@@ -1955,7 +1962,4 @@ func decodeString(s string) string {
 	}
 	return dp[len(text1)][len(text2)]
 }`,
-};
-window.HOT100_GO_COMP = {
-	215: "时间平均 O(n)，最坏 O(n²)，空间 O(1)（迭代快选）",
 };
